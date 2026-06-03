@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STELLARIS • Deep Space Network</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: radial-gradient(circle at center, #0a0f2b 0%, #000000 100%);
+      color: #00eaff;
+      font-family: 'Roboto Mono', monospace;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #fff;
+      animation: twinkle 4s infinite alternate;
+    }
+    @keyframes twinkle { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .nebula {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 30% 40%, rgba(100,60,255,0.18), transparent 60%);
+      animation: nebula-shift 120s linear infinite;
+      z-index: 0;
+    }
+    @keyframes nebula-shift { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    nav {
+      position: fixed;
+      top: 0; width: 100%;
+      background: rgba(5,10,30,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,234,255,0.3);
+      z-index: 100;
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 5px;
+      text-shadow: 0 0 20px #00eaff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #00eaff;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      background: rgba(0,234,255,0.2);
+      box-shadow: 0 0 15px #00eaff;
+    }
+
+    .content {
+      margin-top: 90px;
+      padding: 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Modules on Home - SLIDE UP FROM BOTTOM */
+    .modules-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin: 60px 0;
+      opacity: 0;
+      transform: translateY(100px);
+      animation: slideUpFromBottom 1.2s ease-out forwards;
+    }
+
+    @keyframes slideUpFromBottom {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .module-section {
+      background: #0a1428;
+      border: 2px solid #00d4ff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.25);
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.35rem;
+      padding: 18px 25px;
+      background: #0a1f3d;
+      color: #00eaff;
+      text-align: center;
+      border-bottom: 1px solid #00d4ff;
+    }
+
+    .dropdown-header {
+      padding: 18px 25px;
+      background: #0a1f3d;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #00eaff;
+      transition: all 0.3s;
+    }
+
+    .dropdown-header:hover {
+      background: #112b4f;
+    }
+
+    .arrow {
+      transition: transform 0.4s;
+      font-size: 1.3rem;
+    }
+
+    .dropdown-content {
+      display: none;
+      padding: 20px;
+      background: #0a1428;
+      border-top: 1px solid #00d4ff;
+    }
+
+    .dropdown-content.show {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .module-btn {
+      padding: 14px 18px;
+      background: #0a1f3d;
+      color: #00eaff;
+      border: 2px solid #00d4ff;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14.5px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+
+    .module-btn:hover {
+      background: #112b4f;
+      border-color: #00ffff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .hero { text-align: center; padding: 80px 20px 60px; }
+    .hero h1 { 
+      font-family: 'Orbitron', sans-serif; 
+      font-size: 4rem; 
+      margin-bottom: 20px; 
+      text-shadow: 0 0 40px #00eaff; 
+    }
+
+    /* UPDATES TAB - Clean live feed */
+    .updates-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .updates-header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.8rem;
+      text-align: center;
+      margin-bottom: 40px;
+      color: #00eaff;
+      text-shadow: 0 0 30px #00eaff;
+    }
+
+    .update-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .update-card {
+      background: #0a1428;
+      border: 2px solid #00d4ff;
+      border-radius: 12px;
+      padding: 22px;
+      display: flex;
+      gap: 20px;
+      transition: all 0.3s;
+    }
+
+    .update-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 0 35px rgba(0, 212, 255, 0.4);
+    }
+
+    .update-time {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      color: #00ffff;
+      min-width: 110px;
+      text-align: right;
+      padding-top: 4px;
+    }
+
+    .update-content h3 {
+      font-family: 'Orbitron', sans-serif;
+      color: #00eaff;
+      margin-bottom: 6px;
+    }
+
+    .update-content p {
+      opacity: 0.95;
+      line-height: 1.5;
+    }
+
+    /* GAME IFRAME */
+    #telemetry {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .game-header h1 {
+      text-align: center;
+      flex: 1;
+    }
+
+    .fullscreen-btn {
+      padding: 12px 20px;
+      background: #0a1f3d;
+      color: #00eaff;
+      border: 2px solid #00d4ff;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .fullscreen-btn:hover {
+      background: #112b4f;
+      border-color: #00ffff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    }
+
+    #gameFrame {
+      flex: 1;
+      border: 2px solid #00d4ff;
+      border-radius: 12px;
+      background: #0a1428;
+      width: 100%;
+      min-height: 800px;
+    }
+
+    /* Fullscreen container */
+    #fullscreenContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 9998;
+      display: none;
+    }
+
+    #fullscreenContainer.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #fullscreenFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .exit-fullscreen-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      background: #0a1f3d;
+      color: #00eaff;
+      border: 2px solid #00d4ff;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      z-index: 10000;
+      display: none;
+      transition: all 0.3s;
+    }
+
+    .exit-fullscreen-btn.active {
+      display: block;
+    }
+
+    .exit-fullscreen-btn:hover {
+      background: #112b4f;
+      border-color: #00ffff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    }
+
+    /* AURORA SECTION STYLES */
+    #exploration {
+      margin-top: 0;
+      padding: 0;
+      height: 100vh;
+    }
+
+    .aurora-main {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 5;
+    }
+
+    .aurora-stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .aurora-star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #ff3232;
+      border-radius: 50%;
+      animation: auroraFadeInOut 4s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(255, 50, 50, 0.8);
+    }
+    @keyframes auroraFadeInOut { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+    .aurora-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .aurora-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      justify-content: center;
+    }
+
+    .aurora-header-with-star {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      animation: auroraFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes auroraFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+
+    .aurora-sign {
+      font-size: 70px;
+      font-weight: bold;
+      color: #ff3232;
+      text-shadow: 0 0 15px rgba(255, 50, 50, 0.6), 0 0 30px rgba(220, 20, 60, 0.4), 0 0 20px rgba(255, 50, 50, 0.8);
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      font-family: Arial, sans-serif;
+    }
+
+    .aurora-sign:hover {
+      transform: scale(1.15);
+    }
+
+    .aurora-home-star {
+      width: 60px;
+      height: 60px;
+      animation: auroraStarPulse 3.2s ease-in-out infinite;
+    }
+
+    @keyframes auroraStarPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+    .aurora-sentence-button {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ff3232;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.2s ease;
+      text-shadow: 0 0 15px rgba(255, 50, 50, 0.6), 0 0 30px rgba(220, 20, 60, 0.4);
+      min-height: 30px;
+      font-family: Arial, sans-serif;
+    }
+
+    .aurora-sentence-button:hover {
+      transform: scale(1.1);
+    }
+
+    .aurora-input-button-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .aurora-input, .aurora-btn {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: 2px solid rgba(255, 50, 50, 0.5);
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+    }
+
+    .aurora-input {
+      width: 300px;
+      background: rgba(39, 10, 10, 0.7);
+      color: #ff3232;
+      box-shadow: 0 0 15px rgba(255, 50, 50, 0.3), inset 0 0 10px rgba(255, 50, 50, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .aurora-input:focus {
+      outline: none;
+      border-color: rgba(255, 50, 50, 0.8);
+      box-shadow: 0 0 25px rgba(255, 50, 50, 0.5), inset 0 0 10px rgba(255, 50, 50, 0.2);
+    }
+
+    .aurora-input::placeholder {
+      color: rgba(255, 50, 50, 0.5);
+    }
+
+    .aurora-btn {
+      background-color: rgba(255, 50, 50, 0.1);
+      color: #ff3232;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: bold;
+      box-shadow: 0 0 15px rgba(255, 50, 50, 0.2);
+    }
+
+    .aurora-btn:hover {
+      border-color: rgba(255, 50, 50, 0.5);
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(255, 50, 50, 0.5), 0 0 15px rgba(255, 50, 50, 0.3);
+    }
+
+    .aurora-btn:active {
+      background-color: rgba(255, 50, 50, 0.15);
+      transform: scale(0.98);
+    }
+
+    .aurora-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .aurora-spam-btn {
+      background-color: rgba(255, 100, 50, 0.2);
+      border-color: rgba(255, 100, 50, 0.7);
+    }
+
+    .aurora-spam-btn:hover:not(:disabled) {
+      background-color: rgba(255, 100, 50, 0.3);
+      border-color: rgba(255, 100, 50, 1);
+    }
+
+    .aurora-switch-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ff3232;
+      font-size: 12px;
+      user-select: none;
+      margin-top: 10px;
+      text-shadow: 0 0 10px rgba(255, 50, 50, 0.6);
+      font-family: Arial, sans-serif;
+    }
+
+    .aurora-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .aurora-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .aurora-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 50, 50, 0.2);
+      border: 2px solid rgba(255, 50, 50, 0.5);
+      transition: all 0.3s ease;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(255, 50, 50, 0.2);
+    }
+
+    .aurora-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #ff3232;
+      transition: all 0.3s ease;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 50, 50, 0.8);
+    }
+
+    .aurora-switch input:checked + .aurora-slider {
+      background-color: rgba(255, 50, 50, 0.2);
+      border-color: rgba(255, 50, 50, 0.5);
+    }
+
+    .aurora-switch input:checked + .aurora-slider:before {
+      transform: translateX(16px);
+    }
+
+    .aurora-corner-menu {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      font-family: Arial, sans-serif;
+    }
+
+    .aurora-menu-trigger {
+      background: rgba(39, 10, 10, 0.8);
+      color: #ff3232;
+      border: 2px solid rgba(255, 50, 50, 0.5);
+      padding: 8px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 50, 50, 0.2);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .aurora-menu-trigger:hover {
+      background: rgba(255, 50, 50, 0.1);
+      box-shadow: 0 0 15px rgba(255, 50, 50, 0.4);
+    }
+
+    .aurora-menu-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: rgba(39, 10, 10, 0.95);
+      border: 2px solid rgba(255, 50, 50, 0.5);
+      border-radius: 4px;
+      padding: 10px;
+      min-width: 260px;
+      max-height: 320px;
+      overflow-y: auto;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 50, 50, 0.2);
+      margin-top: 5px;
+    }
+
+    .aurora-corner-menu:hover .aurora-menu-content {
+      display: block;
+    }
+
+    .aurora-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .aurora-menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      color: #ff3232;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 4px 0;
+    }
+
+    .aurora-copy-btn {
+      background: rgba(255, 50, 50, 0.1);
+      border: 1px solid rgba(255, 50, 50, 0.4);
+      color: #ff3232;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: bold;
+      min-width: 65px;
+      text-align: center;
+    }
+
+    .aurora-copy-btn:hover {
+      background: rgba(255, 50, 50, 0.3);
+      border-color: rgba(255, 50, 50, 0.8);
+    }
+
+    .aurora-copy-btn:active {
+      transform: scale(0.95);
+    }
+
+    .aurora-menu-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .aurora-menu-content::-webkit-scrollbar-track {
+      background: rgba(39, 10, 10, 0.5);
+    }
+
+    .aurora-menu-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 50, 50, 0.4);
+      border-radius: 3px;
+    }
+
+    .aurora-menu-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 50, 50, 0.7);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">VibeHub</div>
+    <ul class="nav-links">
+      <li><a href="#" class="active" onclick="showSection('home'); return false;">MISSION HUB</a></li>
+      <li><a href="#" onclick="showSection('updates'); return false;">UPDATES</a></li>
+      <li><a href="#" onclick="showSection('telemetry'); return false;">GEOMETRY DASH!</a></li>
+      <li><a href="#" onclick="showSection('exploration'); return false;">Aurora Proxy</a></li>
+    </ul>
+    <div style="color:#00ff9d;">● LIVE • 04.16.2026</div>
+  </nav>
+
+  <div class="stars" id="stars"></div>
+  <div class="nebula"></div>
+
+  <!-- HOME SECTION - 4 dropdowns (multiple can be open) -->
+  <div id="home" class="content">
+    <div class="hero">
+      <h1>VIBEHUB (remake)</h1>
+      <p>Games for FREE TIME! pr0xies and others FOR FREE TIME!
+    </div>
+
+    <div class="modules-row">
+      <!-- Propulsion -->
+      <div class="module-section">
+        <div class="section-title">Game Hubs (none mine)</div>
+        <div class="dropdown-header" onclick="toggleDropdown(this)">
+          <span>Games inside Hubs (like stash)</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content">
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 1</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 2</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 3</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 4</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 5</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 6</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 7</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 8</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 9</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 10</button>
+        </div>
+      </div>
+
+      <!-- Defense -->
+      <div class="module-section">
+        <div class="section-title">Games (multiple per site))</div>
+        <div class="dropdown-header" onclick="toggleDropdown(this)">
+          <span>Games (ALOT)</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content">
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 1</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 2</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 3</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 4</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 5</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 6</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 7</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 8</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 9</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 10</button>
+        </div>
+      </div>
+
+      <!-- Science -->
+      <div class="module-section">
+        <div class="section-title">Single Games</div>
+        <div class="dropdown-header" onclick="toggleDropdown(this)">
+          <span>geometry dash, ripoff games, and ect</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content">
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 1</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 2</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 3</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 4</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 5</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 6</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 7</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 8</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 9</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 10</button>
+        </div>
+      </div>
+
+      <!-- Communication -->
+      <div class="module-section">
+        <div class="section-title">Other stuff and APPS</div>
+        <div class="dropdown-header" onclick="toggleDropdown(this)">
+          <span>yay other stuff</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content">
+          <button class="module-btn" onclick="openLink('https://www.vibehubfun.space/soundboard')">Sound board</button>
+          <button class="module-btn" onclick="openLink('https://www.vibehubfun.space/tiktok')">Tiktok</button>
+          <button class="module-btn" onclick="openLink('https://www.vibehubfun.space/water-clicker-by-ck')">Water CLicker By KC</button>
+          <button class="module-btn" onclick="openLink('https://www.vibehubfun.space/forming')">Game Form</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 5</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 6</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 7</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 8</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 9</button>
+          <button class="module-btn" onclick="openLink('https://example.com')">BLANK 10</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPDATES TAB -->
+  <div id="updates" class="content" style="display:none;">
+    <div class="updates-container">
+      <h1 class="updates-header">LIVE UPDATES</h1>
+      <div class="update-feed">
+        <div class="update-card">
+          <div class="update-time">April 17-19</div>
+          <div class="update-content">
+            <h3>Update 1.31 (Upcoming)</h3>
+            <p>Adding more games...</p>
+          </div>
+        </div>
+        <div class="update-card">
+          <div class="update-time">April 16</div>
+          <div class="update-content">
+            <h3>Update 1.303</h3>
+            <p>Added messages to updates</p>
+          </div>
+        </div>
+        <div class="update-card">
+          <div class="update-time">April 16</div>
+          <div class="update-content">
+            <h3>Update 1.302</h3>
+            <p>Added geometry dash tab.</p>
+          </div>
+        </div>
+        <div class="update-card">
+          <div class="update-time">April 16</div>
+          <div class="update-content">
+            <h3>1.301</h3>
+            <p>Added sections</p>
+          </div>
+        </div>
+        <div class="update-card">
+          <div class="update-time">April 16</div>
+          <div class="update-content">
+            <h3>Update 13.00</h3>
+            <p>Whole New UI and Design</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME TAB - Embedded in HTML -->
+  <div id="telemetry" class="content" style="display:none;">
+    <div class="game-header">
+      <h1 style="flex: 1;">GEOMETRY DASH</h1>
+      <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ FULLSCREEN</button>
+    </div>
+    <iframe id="gameFrame" src="https://soappppppppppppppppy.github.io/dash/" frameborder="0" allowfullscreen></iframe>
+  </div>
+
+  <!-- Fullscreen container -->
+  <div id="fullscreenContainer">
+    <iframe id="fullscreenFrame" src="https://soappppppppppppppppy.github.io/dash/"></iframe>
+  </div>
+
+  <!-- Exit fullscreen button -->
+  <button class="exit-fullscreen-btn" id="exitFullscreenBtn" onclick="toggleFullscreen()">✕ EXIT FULLSCREEN</button>
+
+  <!-- AURORA TAB -->
+  <div id="exploration" class="content" style="display:none; margin-top: 0; padding: 0;">
+    <div class="aurora-main">
+      <div class="aurora-corner-menu">
+        <button class="aurora-menu-trigger">Games ▾</button>
+        <div class="aurora-menu-content">
+          <div class="aurora-menu-list">
+            <div class="aurora-menu-item">
+                <span>Pizza edition</span>
+                <button class="aurora-copy-btn" onclick="auroraOpenInNewTab('https://pizzaedition.win/')">Open</button>
+            </div>
+            <div class="aurora-menu-item">
+                <span>Geometry Dash</span>
+                <button class="aurora-copy-btn" onclick="auroraOpenInNewTab('https://geometrylite.github.io/geometry-lite-classic')">Open</button>
+            </div>
+            <div class="aurora-menu-item">
+                <span>HAHA Games</span> 
+                <button class="aurora-copy-btn" onclick="auroraOpenInNewTab('https://soapysalt4.github.io/crazy-Salt/')">Open</button>
+            </div>
+            <div class="aurora-menu-item">
+                <span>War Bot</span>
+                <button class="aurora-copy-btn" onclick="auroraOpenInNewTab('https://warbot.io/')">Open</button>
+            </div>
+            <div class="aurora-menu-item">
+                <span>Test</span>
+                <button class="aurora-copy-btn" onclick="auroraOpenInNewTab('https://warbot.io/')">Open</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="aurora-stars" id="aurora-stars-container"></div>
+      <canvas id="aurora-meteor-canvas" class="aurora-canvas"></canvas>
+      <div class="aurora-container">
+        <div class="aurora-header-with-star">
+          <svg class="aurora-home-star" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polygon points="20,2 24.5,15.5 38,20 24.5,24.5 20,38 15.5,24.5 2,20 15.5,15.5" fill="#ff3232" stroke="#ff3232" stroke-width="0.5"/>
+          </svg>
+          <div class="aurora-sign">Bruh</div>
+        </div>
+        <button class="aurora-sentence-button" id="aurora-sentenceBox" onclick="auroraNextSentence()"></button>
+        <div class="aurora-input-button-group">
+          <input type="text" placeholder="https://example.com/" id='aurora-input' autofocus class="aurora-input">
+          <button onclick='auroraLaunch()' class="aurora-btn">Launch</button>
+          <button class="aurora-btn aurora-spam-btn" onclick='auroraSpamLaunch()' id="aurora-spamBtn">Spam 5s</button>
+        </div>
+        <div class="aurora-switch-container">
+          <label class="aurora-switch">
+            <input type="checkbox" id="aurora-multiTabCheck">
+            <span class="aurora-slider"></span>
+          </label>
+          <span>open 2 tabs at once</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== MAIN VIBEHUB FUNCTIONS ====================
+    
+    // Stars background
+    function createStars() {
+      const container = document.getElementById('stars');
+      for (let i = 0; i < 400; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 3 + 1;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.animationDelay = `-${Math.random() * 5}s`;
+        container.appendChild(star);
+      }
+    }
+
+    // Open link in new tab
+    function openLink(url) {
+      window.open(url, '_blank');
+    }
+
+    // Multiple dropdowns can stay open at the same time
+    function toggleDropdown(header) {
+      const content = header.nextElementSibling;
+      const arrow = header.querySelector('.arrow');
+      content.classList.toggle('show');
+      arrow.textContent = content.classList.contains('show') ? '▲' : '▼';
+    }
+
+    // Toggle fullscreen
+    function toggleFullscreen() {
+      const container = document.getElementById('fullscreenContainer');
+      const exitBtn = document.getElementById('exitFullscreenBtn');
+
+      container.classList.toggle('active');
+      exitBtn.classList.toggle('active');
+
+      if (container.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    // Tab switching
+    function showSection(section) {
+      document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
+      document.getElementById(section).style.display = 'block';
+
+      document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+      const activeLink = Array.from(document.querySelectorAll('.nav-links a'))
+        .find(a => a.getAttribute('onclick').includes(section));
+      if (activeLink) activeLink.classList.add('active');
+
+      // Initialize Aurora when exploration is shown
+      if (section === 'exploration') {
+        initializeAurora();
+      }
+    }
+
+    // Initialize
+    window.onload = () => {
+      createStars();
+      showSection('home');
+    };
+
+    // ==================== AURORA FUNCTIONS ====================
+
+    const AURORA_SENTENCES = ["Son", "boiiii", "sss", "hacker the G", "son", "SOn", "Son", "Hello world", "I'm hungry", "no this is not good", "Is this good?"];
+    let auroraCurrentIndex = -1;
+    let auroraSpamActive = false;
+    let auroraInitialized = false;
+
+    class AuroraMeteor {
+      constructor() {
+        const canvas = document.getElementById('aurora-meteor-canvas');
+        this.angle = 30 + Math.random() * 50;
+        this.angleRad = (this.angle * Math.PI) / 180;
+        
+        this.startX = Math.random() * (canvas.width + 400) - 200;
+        this.startY = -100;
+        
+        this.speed = 300 + Math.random() * 200;
+        this.duration = (canvas.height + 400) / this.speed;
+        
+        this.trailLength = 80 + Math.random() * 60;
+        this.elapsed = 0;
+        
+        this.vx = Math.sin(this.angleRad) * this.speed;
+        this.vy = Math.cos(this.angleRad) * this.speed;
+        
+        this.x = this.startX;
+        this.y = this.startY;
+      }
+
+      update(deltaTime) {
+        this.elapsed += deltaTime;
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+      }
+
+      isDone() {
+        return this.elapsed >= this.duration;
+      }
+
+      draw(ctx) {
+        const opacity = 1 - Math.max(0, Math.min(1, (this.elapsed - this.duration + 0.1) / 0.1));
+        if (this.elapsed < 0.1) {
+          const fadeIn = this.elapsed / 0.1;
+          ctx.globalAlpha = fadeIn;
+        } else if (this.elapsed >= this.duration - 0.1) {
+          ctx.globalAlpha = opacity;
+        } else {
+          ctx.globalAlpha = 1;
+        }
+
+        const trailStartX = this.x - Math.sin(this.angleRad) * this.trailLength;
+        const trailStartY = this.y - Math.cos(this.angleRad) * this.trailLength;
+
+        const gradient = ctx.createLinearGradient(
+          trailStartX, trailStartY,
+          this.x, this.y
+        );
+        gradient.addColorStop(0, 'rgba(255, 150, 50, 0)');
+        gradient.addColorStop(0.3, 'rgba(255, 180, 80, 0.4)');
+        gradient.addColorStop(0.7, 'rgba(255, 200, 100, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 220, 100, 0.1)');
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(trailStartX, trailStartY);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 140, 50, 0.15)';
+        ctx.lineWidth = 15;
+        ctx.beginPath();
+        ctx.moveTo(trailStartX, trailStartY);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255, 220, 100, 1)';
+        ctx.shadowColor = 'rgba(255, 200, 50, 0.8)';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function initializeAurora() {
+      if (auroraInitialized) return;
+      auroraInitialized = true;
+
+      // Generate Aurora stars
+      auroraGenerateStars();
+
+      // Setup Canvas for meteors
+      const canvas = document.getElementById('aurora-meteor-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const meteors = [];
+
+      function startMeteorAnimation() {
+        let lastTime = Date.now();
+
+        function spawnMeteor() {
+          if (Math.random() > 0.3) {
+            meteors.push(new AuroraMeteor());
+          }
+          setTimeout(spawnMeteor, 800);
+        }
+
+        spawnMeteor();
+
+        function animate() {
+          const now = Date.now();
+          const deltaTime = (now - lastTime) / 1000;
+          lastTime = now;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (let i = meteors.length - 1; i >= 0; i--) {
+            meteors[i].update(deltaTime);
+            meteors[i].draw(ctx);
+
+            if (meteors[i].isDone()) {
+              meteors.splice(i, 1);
+            }
+          }
+
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      startMeteorAnimation();
+      auroraNextSentence();
+    }
+
+    function auroraGenerateStars() {
+      const container = document.getElementById('aurora-stars-container');
+      container.innerHTML = '';
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'aurora-star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 4 + 's';
+        container.appendChild(star);
+      }
+    }
+
+    function auroraNextSentence() {
+      auroraCurrentIndex = Math.floor(Math.random() * AURORA_SENTENCES.length);
+      const value = AURORA_SENTENCES[auroraCurrentIndex];
+      document.getElementById('aurora-sentenceBox').textContent = value;
+
+      if (document.getElementById('aurora-multiTabCheck').checked && value.startsWith("http")) {
+        for (let i = 0; i < 2; i++) {
+          auroraOpenInNewTab(value);
+        }
+      }
+    }
+
+    function auroraLaunch() {
+      let url = document.getElementById('aurora-input').value.trim();
+      if (!url) return;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      auroraOpenInNewTab(url);
+    }
+
+    function auroraSpamLaunch() {
+      let url = document.getElementById('aurora-input').value.trim();
+      if (!url || auroraSpamActive) return;
+      
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      auroraSpamActive = true;
+      const spamBtn = document.getElementById('aurora-spamBtn');
+      spamBtn.disabled = true;
+      
+      const startTime = Date.now();
+      const duration = 5000;
+
+      const spamInterval = setInterval(() => {
+        if (Date.now() - startTime >= duration) {
+          clearInterval(spamInterval);
+          auroraSpamActive = false;
+          spamBtn.disabled = false;
+          return;
+        }
+        window.open(url, '_blank');
+      }, 50);
+    }
+
+    function auroraOpenInNewTab(url) {
+      const newTab = window.open('about:blank', '_blank');
+      const doc = newTab.document;
+      doc.title = "Aurora";
+      
+      doc.body.style.cssText = 'margin:0;padding:0;height:100vh;overflow:hidden;background:#000;display:flex;flex-direction:column;position:relative;';
+
+      const style = doc.createElement('style');
+      style.textContent = `
+        @keyframes pulseIntro { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+        @keyframes floatUpFade { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+        @keyframes pulseStarNoFlicker { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; }
+        canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1; }
+        .aurora-intro { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; background: rgba(0, 0, 0, 0.9); z-index: 9999; animation: floatUpFade 2s ease-in-out forwards; pointer-events: none; }
+        .intro-logo { width: 80px; height: 80px; animation: pulseIntro 1.5s ease-in-out infinite; filter: drop-shadow(0 0 15px rgba(255, 50, 50, 0.8)); }
+        .intro-text { font-size: 60px; font-weight: bold; color: #ff3232; text-shadow: 0 0 15px rgba(255, 50, 50, 0.6), 0 0 30px rgba(220, 20, 60, 0.4); letter-spacing: 3px; animation: pulseIntro 1.5s ease-in-out infinite; font-family: Arial, sans-serif; }
+        .top-bar-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
+        .top-bar { background: rgba(39, 10, 10, 0.85); border-bottom: 2px solid rgba(255, 50, 50, 0.6); box-shadow: 0 0 20px rgba(255, 50, 50, 0.4), inset 0 0 15px rgba(255, 50, 50, 0.1); padding: 15px 20px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); width: 100%; transition: transform 0.3s ease; }
+        .top-bar.hidden { transform: translateY(-100%); }
+        .top-bar-logo { width: 50px; height: 50px; flex-shrink: 0; animation: pulseStarNoFlicker 3.2s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(255, 50, 50, 0.8)); cursor: pointer; }
+        .top-bar-logo:hover { filter: drop-shadow(0 0 20px rgba(255, 50, 50, 1)); }
+        .bar-input { flex: 1; padding: 10px 15px; font-size: 14px; border: 2px solid rgba(255, 50, 50, 0.5); border-radius: 4px; background: rgba(39, 10, 10, 0.7); color: #ff3232; box-shadow: 0 0 15px rgba(255, 50, 50, 0.3), inset 0 0 10px rgba(255, 50, 50, 0.1); font-family: Arial, sans-serif; }
+        .bar-input:focus { outline: none; border-color: rgba(255, 50, 50, 0.8); box-shadow: 0 0 25px rgba(255, 50, 50, 0.6), inset 0 0 10px rgba(255, 50, 50, 0.2); }
+        .bar-input::placeholder { color: rgba(255, 50, 50, 0.5); }
+        .bar-button, .fullscreen-btn { padding: 10px 15px; font-size: 14px; font-weight: bold; border: 2px solid rgba(255, 50, 50, 0.5); border-radius: 4px; background: rgba(255, 50, 50, 0.1); color: #ff3232; cursor: pointer; box-shadow: 0 0 15px rgba(255, 50, 50, 0.3); font-family: Arial, sans-serif; text-shadow: 0 0 10px rgba(255, 50, 50, 0.6); flex-shrink: 0; transition: all 0.2s ease; }
+        .bar-button:hover, .fullscreen-btn:hover { background: rgba(255, 50, 50, 0.2); border-color: rgba(255, 50, 50, 0.8); transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 50, 50, 0.6); }
+        .bar-button:active, .fullscreen-btn:active { background: rgba(255, 50, 50, 0.15); transform: scale(0.98); }
+        .fullscreen-btn { position: fixed; bottom: 20px; left: 20px; z-index: 1001; }
+        .corner-menu { position: relative; z-index: 100; font-family: Arial, sans-serif; flex-shrink: 0; }
+        .menu-trigger { background: rgba(255, 50, 50, 0.1); color: #ff3232; border: 2px solid rgba(255, 50, 50, 0.5); padding: 8px 15px; font-size: 13px; font-weight: bold; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 50, 50, 0.3); display: flex; align-items: center; gap: 8px; text-shadow: 0 0 10px rgba(255, 50, 50, 0.6); transition: all 0.2s ease; }
+        .menu-trigger:hover { background: rgba(255, 50, 50, 0.2); box-shadow: 0 0 20px rgba(255, 50, 50, 0.6); border-color: rgba(255, 50, 50, 0.8); }
+        .menu-content { display: none; position: absolute; top: 100%; left: 0; background: rgba(39, 10, 10, 0.95); border: 2px solid rgba(255, 50, 50, 0.5); border-radius: 4px; padding: 10px; min-width: 260px; max-height: 320px; overflow-y: auto; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 50, 50, 0.3); }
+        .corner-menu:hover .menu-content { display: block; }
+        .menu-list { display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #ff3232; font-size: 13px; font-weight: bold; padding: 4px 0; text-shadow: 0 0 8px rgba(255, 50, 50, 0.5); }
+        .copy-btn { background: rgba(255, 50, 50, 0.1); border: 1px solid rgba(255, 50, 50, 0.4); color: #ff3232; padding: 4px 8px; font-size: 11px; border-radius: 3px; cursor: pointer; font-weight: bold; min-width: 65px; text-align: center; box-shadow: 0 0 10px rgba(255, 50, 50, 0.2); text-shadow: 0 0 8px rgba(255, 50, 50, 0.4); transition: all 0.2s ease; }
+        .copy-btn:hover { background: rgba(255, 50, 50, 0.3); border-color: rgba(255, 50, 50, 0.8); box-shadow: 0 0 15px rgba(255, 50, 50, 0.5); }
+        .copy-btn:active { transform: scale(0.95); }
+        .menu-content::-webkit-scrollbar { width: 6px; }
+        .menu-content::-webkit-scrollbar-track { background: rgba(39, 10, 10, 0.5); }
+        .menu-content::-webkit-scrollbar-thumb { background: rgba(255, 50, 50, 0.4); border-radius: 3px; }
+        .menu-content::-webkit-scrollbar-thumb:hover { background: rgba(255, 50, 50, 0.7); }
+        .content-wrapper { flex: 1; overflow: hidden; width: 100%; transition: margin-top 0.3s ease; position: relative; z-index: 10; }
+        .frame-node { width: 100%; height: 100%; border: none; }
+      `;
+      doc.head.appendChild(style);
+
+      // Canvas for meteors
+      const tabCanvas = doc.createElement('canvas');
+      tabCanvas.width = newTab.innerWidth;
+      tabCanvas.height = newTab.innerHeight;
+      tabCanvas.style.position = 'fixed';
+      tabCanvas.style.top = '0';
+      tabCanvas.style.left = '0';
+      tabCanvas.style.pointerEvents = 'none';
+      tabCanvas.style.zIndex = '1';
+      doc.body.appendChild(tabCanvas);
+
+      const tabCtx = tabCanvas.getContext('2d');
+      const tabMeteors = [];
+
+      function spawnTabMeteor() {
+        if (Math.random() > 0.3) {
+          tabMeteors.push(new AuroraMeteor());
+        }
+        if (!newTab.closed) {
+          setTimeout(spawnTabMeteor, 800);
+        }
+      }
+
+      spawnTabMeteor();
+
+      let tabLastTime = Date.now();
+      function animateTab() {
+        if (newTab.closed) return;
+
+        const now = Date.now();
+        const deltaTime = (now - tabLastTime) / 1000;
+        tabLastTime = now;
+
+        tabCtx.clearRect(0, 0, tabCanvas.width, tabCanvas.height);
+
+        for (let i = tabMeteors.length - 1; i >= 0; i--) {
+          tabMeteors[i].update(deltaTime);
+          tabMeteors[i].draw(tabCtx);
+
+          if (tabMeteors[i].isDone()) {
+            tabMeteors.splice(i, 1);
+          }
+        }
+
+        requestAnimationFrame(animateTab);
+      }
+
+      animateTab();
+
+      // Intro animation
+      const intro = doc.createElement('div');
+      intro.className = 'aurora-intro';
+      const logoSVG = createStar();
+      logoSVG.classList.add('intro-logo');
+      const text = doc.createElement('div');
+      text.className = 'intro-text';
+      text.textContent = 'Aurora';
+      intro.appendChild(logoSVG);
+      intro.appendChild(text);
+      doc.body.appendChild(intro);
+
+      setTimeout(() => intro.remove(), 2000);
+
+      // Top bar
+      const topBarContainer = doc.createElement('div');
+      topBarContainer.className = 'top-bar-container';
+
+      const topBar = doc.createElement('div');
+      topBar.className = 'top-bar';
+
+      const homeBtn = doc.createElement('button');
+      homeBtn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;display:flex;';
+      const homeStar = createStar();
+      homeStar.classList.add('top-bar-logo');
+      homeBtn.appendChild(homeStar);
+      homeBtn.onclick = () => newTab.location.href = newTab.location.origin;
+      topBar.appendChild(homeBtn);
+
+      const cornerMenu = createMenu();
+      topBar.appendChild(cornerMenu);
+
+      const input = doc.createElement('input');
+      input.className = 'bar-input';
+      input.type = 'text';
+      input.placeholder = 'https://example.com/';
+      topBar.appendChild(input);
+
+      const launchBtn = doc.createElement('button');
+      launchBtn.className = 'bar-button';
+      launchBtn.textContent = 'Launch';
+      launchBtn.onclick = () => launchFromTab(input.value, newTab);
+      topBar.appendChild(launchBtn);
+
+      topBarContainer.appendChild(topBar);
+      doc.body.appendChild(topBarContainer);
+
+      // Content
+      const wrapper = doc.createElement('div');
+      wrapper.className = 'content-wrapper';
+      wrapper.style.marginTop = '80px';
+      const frame = doc.createElement('iframe');
+      frame.className = 'frame-node';
+      frame.src = url;
+      wrapper.appendChild(frame);
+      doc.body.appendChild(wrapper);
+
+      // Fullscreen button
+      const fullBtn = doc.createElement('button');
+      fullBtn.className = 'fullscreen-btn';
+      fullBtn.textContent = '⛶';
+      fullBtn.title = 'Toggle Fullscreen';
+      let isFS = false;
+      fullBtn.onclick = () => {
+        isFS = !isFS;
+        if (isFS) {
+          topBar.classList.add('hidden');
+          wrapper.style.marginTop = '0';
+          fullBtn.textContent = '⛶ Exit';
+        } else {
+          topBar.classList.remove('hidden');
+          wrapper.style.marginTop = '80px';
+          fullBtn.textContent = '⛶';
+        }
+      };
+      doc.body.appendChild(fullBtn);
+
+      function createMenu() {
+        const menu = doc.createElement('div');
+        menu.className = 'corner-menu';
+        const trigger = doc.createElement('button');
+        trigger.className = 'menu-trigger';
+        trigger.textContent = 'Games ▾';
+        const content = doc.createElement('div');
+        content.className = 'menu-content';
+        const list = doc.createElement('div');
+        list.className = 'menu-list';
+        
+        const games = [
+          { name: 'Pizza edition', url: 'https://pizzaedition.win/' },
+          { name: 'Geometry Dash', url: 'https://geometrylite.github.io/geometry-lite-classic' },
+          { name: 'HAHA Games', url: 'https://soapysalt4.github.io/crazy-Salt/' },
+          { name: 'War Bot', url: 'https://warbot.io/' },
+          { name: 'Test', url: 'https://warbot.io/' }
+        ];
+        
+        games.forEach(game => {
+          const item = doc.createElement('div');
+          item.className = 'menu-item';
+          const name = doc.createElement('span');
+          name.textContent = game.name;
+          const btn = doc.createElement('button');
+          btn.className = 'copy-btn';
+          btn.textContent = 'Open';
+          btn.onclick = () => auroraOpenInNewTab(game.url);
+          item.appendChild(name);
+          item.appendChild(btn);
+          list.appendChild(item);
+        });
+        
+        content.appendChild(list);
+        menu.appendChild(trigger);
+        menu.appendChild(content);
+        return menu;
+      }
+
+      function createStar() {
+        const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 40 40');
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svg.setAttribute('aria-hidden', 'true');
+        const poly = doc.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', '20,2 24.5,15.5 38,20 24.5,24.5 20,38 15.5,24.5 2,20 15.5,15.5');
+        poly.setAttribute('fill', '#ff3232');
+        poly.setAttribute('stroke', '#ff3232');
+        poly.setAttribute('stroke-width', '0.5');
+        svg.appendChild(poly);
+        return svg;
+      }
+    }
+
+    function launchFromTab(url, tab) {
+      if (!url.trim()) return;
+      url = url.trim();
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      const newTab = window.open('about:blank', '_blank');
+      setTimeout(() => {
+        newTab.location.href = url;
+      }, 100);
+    }
+  </script>
+</body>
+</html>
